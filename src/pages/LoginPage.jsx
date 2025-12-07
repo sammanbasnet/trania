@@ -1,12 +1,11 @@
 import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import Logo from '../components/Logo.jsx';
-import loginImage from '../components/login.png';
 
 function LoginPage() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [rememberMe, setRememberMe] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
   const navigate = useNavigate();
 
@@ -32,41 +31,50 @@ function LoginPage() {
 
   return (
     <div className="login-page">
-      <div className="login-left">
-        <p className="login-page-label">Login Page</p>
-        <h1 className="login-title">Sign-in</h1>
+      <div className="login-background"></div>
+      <div className="login-panel">
+        <div className="login-logo-container">
+          <Logo size={60} />
+          <span className="login-logo-text">TRANIA</span>
+        </div>
+        
+        <h1 className="login-welcome-title">Welcome Back</h1>
+        <p className="login-subtitle">Login to continue your fitness journey</p>
 
         <form onSubmit={handleSubmit} className="login-form">
           <label className="login-label">
-            Email*
+            Email
             <input
               type="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               className="login-input"
+              placeholder="your@email.com"
             />
           </label>
 
           <label className="login-label">
-            Password*
-            <input
-              type="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              className="login-input"
-            />
+            Password
+            <div className="password-input-wrapper">
+              <input
+                type={showPassword ? 'text' : 'password'}
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                className="login-input"
+                placeholder="********"
+              />
+              <button
+                type="button"
+                className="password-toggle"
+                onClick={() => setShowPassword(!showPassword)}
+              >
+                {showPassword ? '👁️' : '👁️‍🗨️'}
+              </button>
+            </div>
           </label>
 
-          <div className="login-options">
-            <label className="remember-me">
-              <input
-                type="checkbox"
-                checked={rememberMe}
-                onChange={(e) => setRememberMe(e.target.checked)}
-              />
-              <span>Remember me</span>
-            </label>
-            <a href="#" className="forgot-password">Forgot Password?</a>
+          <div className="forgot-password-link">
+            <a href="#" className="forgot-password">Forgot password?</a>
           </div>
 
           {error && <div className="error">{error}</div>}
@@ -75,17 +83,22 @@ function LoginPage() {
             Login
           </button>
           
+          <div className="login-separator">
+            <span>or</span>
+          </div>
+
           <p className="login-signup-link">
-            Don't have an account? <Link to="/register">Sign up</Link>
+            Don't have an account? <Link to="/register">Sign Up</Link>
+          </p>
+
+          <button type="button" className="trainer-signup-btn" onClick={() => navigate('/register')}>
+            Sign Up as a trainer?
+          </button>
+
+          <p className="login-copyright">
+            © 2024 TRANIA. Premium Fitness Training Platform
           </p>
         </form>
-      </div>
-
-      <div className="login-right" style={{ backgroundImage: `linear-gradient(rgba(0, 0, 0, 0.1), rgba(0, 0, 0, 0.3)), url(${loginImage})` }}>
-        <div className="login-logo">
-          <Logo size={96} />
-        </div>
-        <div className="login-image-overlay"></div>
       </div>
     </div>
   );
