@@ -91,7 +91,7 @@ function LoginPage() {
             Don't have an account? <Link to="/register">Sign Up</Link>
           </p>
 
-          <button type="button" className="trainer-signup-btn" onClick={() => navigate('/register')}>
+          <button type="button" className="trainer-signup-btn" onClick={() => navigate('/trainer-signup')}>
             Sign Up as a trainer?
           </button>
 

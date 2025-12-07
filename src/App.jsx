@@ -5,11 +5,12 @@ import TrainersPage from './pages/TrainersPage.jsx';
 import CoachProfilePage from './pages/CoachProfilePage.jsx';
 import BookingPage from './pages/BookingPage.jsx';
 import HomePage from './pages/HomePage.jsx';
+import TrainerSignupPage from './pages/TrainerSignupPage.jsx';
 import Logo from './components/Logo.jsx';
 
 function App() {
   const location = useLocation();
-  const isAuthPage = location.pathname === '/login' || location.pathname === '/register';
+  const isAuthPage = location.pathname === '/login' || location.pathname === '/register' || location.pathname === '/trainer-signup';
 
   return (
     <div className="app">
@@ -35,6 +36,7 @@ function App() {
           <Route path="/" element={<HomePage />} />
           <Route path="/login" element={<LoginPage />} />
           <Route path="/register" element={<RegisterPage />} />
+          <Route path="/trainer-signup" element={<TrainerSignupPage />} />
           <Route path="/trainers" element={<TrainersPage />} />
           <Route path="/trainer/:id" element={<CoachProfilePage />} />
           <Route path="/booking/:trainerId" element={<BookingPage />} />
