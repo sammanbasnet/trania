@@ -1,4 +1,5 @@
 import { Routes, Route, Link, useLocation } from 'react-router-dom';
+import { useEffect, useState } from 'react';
 import LoginPage from './pages/LoginPage.jsx';
 import RegisterPage from './pages/RegisterPage.jsx';
 import TrainersPage from './pages/TrainersPage.jsx';
@@ -10,10 +11,32 @@ import Logo from './components/Logo.jsx';
 
 function App() {
   const location = useLocation();
+  const [showSplash, setShowSplash] = useState(false);
   const isAuthPage = location.pathname === '/login' || location.pathname === '/register' || location.pathname === '/trainer-signup';
+  const isAuthPageWithSplash = location.pathname === '/login' || location.pathname === '/register' || location.pathname === '/trainer-signup';
+
+  useEffect(() => {
+    if (isAuthPageWithSplash) {
+      setShowSplash(true);
+      const timer = setTimeout(() => {
+        setShowSplash(false);
+      }, 800);
+      return () => clearTimeout(timer);
+    } else {
+      setShowSplash(false);
+    }
+  }, [location.pathname, isAuthPageWithSplash]);
 
   return (
     <div className="app">
+      {showSplash && (
+        <div className="splash-screen">
+          <div className="splash-logo-container">
+            <Logo size={200} spin={true} />
+          </div>
+        </div>
+      )}
+
       {!isAuthPage && (
         <header className="app-header">
           <Link to="/" className="logo">

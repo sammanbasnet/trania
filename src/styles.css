@@ -52,10 +52,28 @@ body {
 .trania-logo {
   display: block;
   flex-shrink: 0;
+  transition: transform 0.3s ease;
 }
 
 .logo .trania-logo {
   filter: brightness(0) contrast(1.2);
+}
+
+.logo:hover .trania-logo {
+  transform: rotate(360deg);
+}
+
+.logo-spin {
+  animation: spin 2s linear infinite;
+}
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 nav {
@@ -91,11 +109,55 @@ nav a:hover {
 
 .app-main {
   width: 100%;
+  position: relative;
 }
 
 .app-main.login-main {
   padding: 0;
   margin: 0;
+}
+
+/* Splash Screen */
+.splash-screen {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: #000000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+  animation: splashFadeOut 0.8s ease-in-out forwards;
+}
+
+.splash-logo-container {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 200px;
+  height: 200px;
+}
+
+.splash-logo-container .trania-logo {
+  filter: brightness(0) invert(1);
+  width: 200px;
+  height: 200px;
+  object-fit: contain;
+}
+
+@keyframes splashFadeOut {
+  0% {
+    opacity: 1;
+  }
+  70% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+    visibility: hidden;
+  }
 }
 
 /* Homepage Hero Section */
@@ -195,14 +257,56 @@ nav a:hover {
   font-size: 42px;
   font-weight: 700;
   color: #ffffff;
-  margin-bottom: 24px;
+  margin-bottom: 40px;
+  text-align: center;
+}
+
+.about-text-content {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
 }
 
 .about-section p {
   font-size: 18px;
   color: rgba(255, 255, 255, 0.85);
   line-height: 1.8;
-  max-width: 900px;
+  max-width: 100%;
+  margin: 0;
+}
+
+.about-features {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 32px;
+  margin-top: 40px;
+}
+
+.about-feature {
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 16px;
+  padding: 32px;
+  transition: transform 0.3s, border-color 0.3s;
+}
+
+.about-feature:hover {
+  transform: translateY(-4px);
+  border-color: rgba(255, 255, 255, 0.2);
+}
+
+.about-feature h3 {
+  font-size: 24px;
+  font-weight: 600;
+  color: #ffffff;
+  margin: 0 0 16px 0;
+}
+
+.about-feature p {
+  font-size: 16px;
+  color: rgba(255, 255, 255, 0.8);
+  line-height: 1.7;
+  margin: 0;
 }
 
 /* What We Offer Section */
@@ -920,6 +1024,10 @@ nav a:hover {
     grid-template-columns: repeat(2, 1fr);
   }
 
+  .about-features {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
   .footer-content {
     grid-template-columns: repeat(2, 1fr);
   }
@@ -966,6 +1074,18 @@ nav a:hover {
 
   .offer-grid {
     grid-template-columns: 1fr;
+  }
+
+  .about-features {
+    grid-template-columns: 1fr;
+  }
+
+  .about-section {
+    padding: 60px 24px;
+  }
+
+  .about-section h2 {
+    font-size: 32px;
   }
 
   .footer-content {
