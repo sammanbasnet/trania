@@ -51,10 +51,10 @@ function LoginPage() {
     <div className="login-page">
       <div className="login-background"></div>
       <div className="login-panel">
-        <div className="login-logo-container">
+        <Link to="/" className="login-logo-container">
           <Logo size={60} />
           <span className="login-logo-text">TRANIA</span>
-        </div>
+        </Link>
         
         <h1 className="login-welcome-title">Welcome Back</h1>
         <p className="login-subtitle">Login to continue your fitness journey</p>

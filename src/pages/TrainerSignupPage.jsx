@@ -78,13 +78,13 @@ function TrainerSignupPage() {
     <div className="trainer-signup-page">
       <div className="trainer-signup-left">
         <div className="trainer-signup-branding">
-          <div className="trainer-brand-header">
+          <Link to="/" className="trainer-brand-header">
             <div className="trainer-brand-text-wrapper">
               <span className="trainer-brand-text">TRANIA</span>
               <div className="trainer-brand-line"></div>
             </div>
             <Logo size={60} />
-          </div>
+          </Link>
           <h1 className="trainer-tagline-title">Elite Trainer Platform</h1>
           <p className="trainer-tagline-subtitle">
             Join the premier network of certified fitness professionals and elevate your training career.

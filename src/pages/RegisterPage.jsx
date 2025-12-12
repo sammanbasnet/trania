@@ -51,13 +51,13 @@ function RegisterPage() {
       <div className="register-background"></div>
       <div className="register-content-wrapper">
         <div className="register-main-content">
-          <div className="register-logo-top">
+          <Link to="/" className="register-logo-top">
             <Logo size={60} />
             <div className="register-logo-text-wrapper">
               <span className="register-logo-text">TRANIA</span>
               <div className="register-logo-divider"></div>
             </div>
-          </div>
+          </Link>
           
           <h1 className="register-title">Create Account</h1>
           <p className="register-subtitle">Join the fitness revolution today</p>
