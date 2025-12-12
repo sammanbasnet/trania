@@ -17,16 +17,34 @@ function LoginPage() {
       return;
     }
 
+    // Check if user is trainer or client
+    const trainerData = localStorage.getItem('tranlyTrainer');
+    const userData = localStorage.getItem('tranlyUser');
+    
+    let userType = 'client';
+    if (trainerData) {
+      const trainer = JSON.parse(trainerData);
+      if (trainer.email === email) {
+        userType = 'trainer';
+      }
+    }
+
     // Simple fake auth for now: store user in localStorage
     localStorage.setItem(
       'tranlyUser',
       JSON.stringify({
         email,
+        userType,
       }),
     );
 
     setError('');
-    navigate('/trainers');
+    // Redirect based on user type
+    if (userType === 'trainer') {
+      navigate('/trainer-dashboard');
+    } else {
+      navigate('/client-dashboard');
+    }
   };
 
   return (

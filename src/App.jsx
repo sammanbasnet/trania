@@ -7,6 +7,9 @@ import CoachProfilePage from './pages/CoachProfilePage.jsx';
 import BookingPage from './pages/BookingPage.jsx';
 import HomePage from './pages/HomePage.jsx';
 import TrainerSignupPage from './pages/TrainerSignupPage.jsx';
+import ClientDashboard from './pages/ClientDashboard.jsx';
+import TrainerDashboard from './pages/TrainerDashboard.jsx';
+import ProtectedRoute from './components/ProtectedRoute.jsx';
 import Logo from './components/Logo.jsx';
 
 function App() {
@@ -14,6 +17,10 @@ function App() {
   const [showSplash, setShowSplash] = useState(false);
   const isAuthPage = location.pathname === '/login' || location.pathname === '/register' || location.pathname === '/trainer-signup';
   const isAuthPageWithSplash = location.pathname === '/login' || location.pathname === '/register' || location.pathname === '/trainer-signup';
+  const isDashboardPage = location.pathname.includes('dashboard');
+  
+  const userData = JSON.parse(localStorage.getItem('tranlyUser') || 'null');
+  const isLoggedIn = !!userData;
 
   useEffect(() => {
     if (isAuthPageWithSplash) {
@@ -37,20 +44,56 @@ function App() {
         </div>
       )}
 
-      {!isAuthPage && (
+      {!isAuthPage && !isDashboardPage && (
         <header className="app-header">
           <Link to="/" className="logo">
             <Logo size={48} />
-            <span>Trania</span>
+            <span>TRANIA</span>
           </Link>
           <nav>
-            <Link to="/">Home</Link>
-            <Link to="/trainers">Training</Link>
-            <a href="#about">About</a>
-            <Link to="/register" className="nav-register">
-              Sign Up / Login
-            </Link>
+            <Link to="/">HOME</Link>
+            <Link to="/trainers">SESSIONS</Link>
+            <Link to="/trainers">TRAINERS</Link>
+            <a href="#about">ABOUT</a>
           </nav>
+          <div className="header-actions">
+            {isLoggedIn ? (
+              <Link to={userData.userType === 'trainer' ? '/trainer-dashboard' : '/client-dashboard'} className="nav-signin">
+                Dashboard
+              </Link>
+            ) : (
+              <>
+                <Link to="/login" className="nav-signin">Sign In</Link>
+                <Link to="/register" className="nav-get-started">Get Started</Link>
+              </>
+            )}
+          </div>
+        </header>
+      )}
+
+      {isDashboardPage && (
+        <header className="dashboard-header">
+          <Link to="/" className="logo">
+            <Logo size={48} />
+            <span>TRANIA</span>
+          </Link>
+          <nav className="dashboard-nav">
+            <Link to="/">HOME</Link>
+            <Link to="/trainers">SESSIONS</Link>
+            <Link to="/trainers">TRAINERS</Link>
+            <a href="#about">ABOUT</a>
+          </nav>
+          <div className="header-icons">
+            <button className="icon-btn" aria-label="Notifications">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path>
+                <path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
+              </svg>
+            </button>
+            <button className="icon-btn profile-btn" aria-label="Profile">
+              <div className="profile-avatar"></div>
+            </button>
+          </div>
         </header>
       )}
 
@@ -63,6 +106,22 @@ function App() {
           <Route path="/trainers" element={<TrainersPage />} />
           <Route path="/trainer/:id" element={<CoachProfilePage />} />
           <Route path="/booking/:trainerId" element={<BookingPage />} />
+          <Route 
+            path="/client-dashboard" 
+            element={
+              <ProtectedRoute userType="client">
+                <ClientDashboard />
+              </ProtectedRoute>
+            } 
+          />
+          <Route 
+            path="/trainer-dashboard" 
+            element={
+              <ProtectedRoute userType="trainer">
+                <TrainerDashboard />
+              </ProtectedRoute>
+            } 
+          />
         </Routes>
       </main>
     </div>

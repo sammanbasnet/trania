@@ -38,11 +38,12 @@ function RegisterPage() {
         fullName,
         email,
         phone,
+        userType: 'client',
       }),
     );
 
     setError('');
-    navigate('/trainers');
+    navigate('/client-dashboard');
   };
 
   return (

@@ -59,8 +59,19 @@ function TrainerSignupPage() {
       }),
     );
 
+    // Also store as user with trainer type
+    localStorage.setItem(
+      'tranlyUser',
+      JSON.stringify({
+        fullName,
+        email,
+        phone,
+        userType: 'trainer',
+      }),
+    );
+
     setError('');
-    navigate('/trainers');
+    navigate('/trainer-dashboard');
   };
 
   return (
