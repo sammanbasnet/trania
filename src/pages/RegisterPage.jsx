@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import Logo from '../components/Logo.jsx';
+import { authAPI } from '../utils/api.js';
 
 function RegisterPage() {
   const [fullName, setFullName] = useState('');
@@ -11,9 +12,10 @@ function RegisterPage() {
   const [gender, setGender] = useState('');
   const [acceptTerms, setAcceptTerms] = useState(false);
   const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
 
     if (!fullName || !email || !phone || !password || !confirmPassword) {
@@ -31,19 +33,27 @@ function RegisterPage() {
       return;
     }
 
-    // Simple fake auth for now: store user in localStorage
-    localStorage.setItem(
-      'tranlyUser',
-      JSON.stringify({
+    setError('');
+    setLoading(true);
+
+    try {
+      await authAPI.userSignup({
         fullName,
         email,
         phone,
-        userType: 'client',
-      }),
-    );
+        password,
+        gender: gender || null,
+      });
 
-    setError('');
-    navigate('/client-dashboard');
+      // Redirect to login page after successful signup
+      navigate('/login', { 
+        state: { message: 'Account created successfully! Please login.' } 
+      });
+    } catch (err) {
+      setError(err.message || 'Registration failed. Please try again.');
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -180,8 +190,8 @@ function RegisterPage() {
 
             {error && <div className="error">{error}</div>}
 
-            <button type="submit" className="register-btn">
-              CREATE ACCOUNT
+            <button type="submit" className="register-btn" disabled={loading}>
+              {loading ? 'Creating Account...' : 'CREATE ACCOUNT'}
             </button>
 
             <p className="register-login-link">

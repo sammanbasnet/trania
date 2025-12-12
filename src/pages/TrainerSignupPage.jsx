@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import Logo from '../components/Logo.jsx';
 import islamImage from '../components/islam.avif';
+import { authAPI } from '../utils/api.js';
 
 function TrainerSignupPage() {
   const [fullName, setFullName] = useState('');
@@ -16,6 +17,7 @@ function TrainerSignupPage() {
   const [confirmPassword, setConfirmPassword] = useState('');
   const [agreeToCertification, setAgreeToCertification] = useState(false);
   const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
   const handleSpecialtyChange = (specialty) => {
@@ -26,7 +28,7 @@ function TrainerSignupPage() {
     );
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
 
     if (!fullName || !email || !phone || !yearsExperience || !hourlyRate || !password || !confirmPassword) {
@@ -44,10 +46,11 @@ function TrainerSignupPage() {
       return;
     }
 
-    // Store trainer data
-    localStorage.setItem(
-      'tranlyTrainer',
-      JSON.stringify({
+    setError('');
+    setLoading(true);
+
+    try {
+      await authAPI.trainerSignup({
         fullName,
         email,
         phone,
@@ -56,22 +59,18 @@ function TrainerSignupPage() {
         certifications,
         specialties,
         gymLocation,
-      }),
-    );
+        password,
+      });
 
-    // Also store as user with trainer type
-    localStorage.setItem(
-      'tranlyUser',
-      JSON.stringify({
-        fullName,
-        email,
-        phone,
-        userType: 'trainer',
-      }),
-    );
-
-    setError('');
-    navigate('/trainer-dashboard');
+      // Redirect to login page after successful signup
+      navigate('/login', { 
+        state: { message: 'Trainer account created successfully! Please login.' } 
+      });
+    } catch (err) {
+      setError(err.message || 'Registration failed. Please try again.');
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -267,12 +266,12 @@ function TrainerSignupPage() {
 
             {error && <div className="trainer-error">{error}</div>}
 
-            <button type="submit" className="trainer-register-btn">
+            <button type="submit" className="trainer-register-btn" disabled={loading}>
               <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                 <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
                 <circle cx="12" cy="7" r="4"></circle>
               </svg>
-              Register as Trainer
+              {loading ? 'Registering...' : 'Register as Trainer'}
             </button>
 
             <p className="trainer-login-link">
