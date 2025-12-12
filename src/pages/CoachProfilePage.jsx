@@ -5,23 +5,27 @@ const TRAINERS_BY_ID = {
     id: '1',
     name: 'Sarah Johnson',
     specialty: 'Boxing & Combat Sports',
-    experience: '12+ years',
+    subtitle: 'Certified Personal Trainer & Combat Sports Specialist',
+    experience: '12',
     rating: 4.9,
     reviews: 326,
     rate: 85,
     photo: 'https://images.unsplash.com/photo-1544367567-0f2fcb009e0b?w=800&h=800&fit=crop&q=80',
-    bio: 'With over 12 years of experience, I specialize in helping clients achieve their fitness goals through personalized training programs. My methodology focuses on building strength, improving technique, and maintaining long-term health and wellness.',
+    bio: [
+      'With over 12 years of experience in the fitness industry, I specialize in strength training, body transformation, and functional fitness. My approach combines scientific methodology with personalized attention to help you achieve sustainable results.',
+      'Whether you\'re looking to build muscle, lose weight, or improve athletic performance, I\'ll create a customized program tailored to your specific goals and lifestyle.'
+    ],
     certifications: [
-      'NASM Certified Personal Trainer',
-      'Precision Nutrition Level 1',
-      'Functional Movement Screen',
-      'CPR & First Aid Certified',
+      { name: 'NASM Certified Personal Trainer', org: 'National Academy of Sports Medicine' },
+      { name: 'Precision Nutrition Level 1', org: 'Certified Nutrition Coach' },
+      { name: 'Functional Movement Screen', org: 'FMS Certified Professional' },
+      { name: 'CPR & First Aid Certified', org: 'American Red Cross' },
     ],
     specializations: [
       'Strength Training',
       'Weight Loss',
-      'Cardio',
-      'HIIT',
+      'Muscle Building',
+      'Functional Fitness',
       'Nutrition Coaching',
       'Athletic Performance',
       'Injury Prevention',
@@ -37,23 +41,27 @@ const TRAINERS_BY_ID = {
     id: '2',
     name: 'Marcus Steel',
     specialty: 'Strength Training',
-    experience: '12+ years',
+    subtitle: 'Certified Personal Trainer & Nutrition Specialist',
+    experience: '12',
     rating: 4.9,
-    reviews: 326,
-    rate: 95,
+    reviews: 127,
+    rate: 85,
     photo: 'https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?w=800&h=800&fit=crop&q=80',
-    bio: 'Certified Personal Trainer & Nutrition Specialist with 12+ years of experience. My methodology focuses on building strength, improving technique, and maintaining long-term health and wellness.',
+    bio: [
+      'With over 12 years of experience in the fitness industry, I specialize in strength training, body transformation, and functional fitness. My approach combines scientific methodology with personalized attention to help you achieve sustainable results.',
+      'Whether you\'re looking to build muscle, lose weight, or improve athletic performance, I\'ll create a customized program tailored to your specific goals and lifestyle.'
+    ],
     certifications: [
-      'NASM Certified Personal Trainer',
-      'Precision Nutrition Level 1',
-      'Functional Movement Screen',
-      'CPR & First Aid Certified',
+      { name: 'NASM Certified Personal Trainer', org: 'National Academy of Sports Medicine' },
+      { name: 'Precision Nutrition Level 1', org: 'Certified Nutrition Coach' },
+      { name: 'Functional Movement Screen', org: 'FMS Certified Professional' },
+      { name: 'CPR & First Aid Certified', org: 'American Red Cross' },
     ],
     specializations: [
       'Strength Training',
       'Weight Loss',
-      'Cardio',
-      'HIIT',
+      'Muscle Building',
+      'Functional Fitness',
       'Nutrition Coaching',
       'Athletic Performance',
       'Injury Prevention',
@@ -85,62 +93,120 @@ function CoachProfilePage() {
   return (
     <section className="coach-profile">
       <div className="coach-profile-container">
-        <div className="coach-profile-main">
-          <div className="coach-profile-photo">
-            <img src={trainer.photo} alt={trainer.name} />
-          </div>
-          <div className="coach-profile-info">
-            <h1>{trainer.name.toUpperCase()}</h1>
-            <p className="coach-profile-title">{trainer.specialty}</p>
-            <div className="coach-profile-rating">
-              <span className="stars">★★★★★</span>
-              <span className="rating-number">{trainer.rating}</span>
-              <span className="reviews-count">({trainer.reviews} Reviews)</span>
+        {/* Hero Section */}
+        <div className="coach-profile-hero">
+          <div className="coach-hero-content">
+            <div className="coach-hero-info">
+              <h1>{trainer.name.toUpperCase()}</h1>
+              <p className="coach-profile-subtitle">{trainer.subtitle}</p>
+              <div className="coach-hero-stats">
+                <div className="hero-stat-item">
+                  <span className="hero-stat-icon">★</span>
+                  <span className="hero-stat-value">{trainer.rating}</span>
+                  <span className="hero-stat-label">({trainer.reviews} reviews)</span>
+                </div>
+                <div className="hero-stat-item">
+                  <span className="hero-stat-icon">👤</span>
+                  <span className="hero-stat-value">{trainer.experience} Years</span>
+                  <span className="hero-stat-label">Experience</span>
+                </div>
+                <div className="hero-stat-item">
+                  <span className="hero-stat-icon">👥</span>
+                  <span className="hero-stat-value">{trainer.stats.clients}</span>
+                  <span className="hero-stat-label">Clients</span>
+                </div>
+              </div>
             </div>
-            <Link to={`/booking/${trainer.id}`} className="coach-profile-book-btn">
-              BOOK SESSION
+            <Link to={`/booking/${trainer.id}`} className="coach-hero-book-btn">
+              BOOK NOW
             </Link>
           </div>
         </div>
 
+        {/* Main Content Area */}
         <div className="coach-profile-content">
           <div className="coach-profile-left">
             <div className="profile-section">
-              <h2>About Me</h2>
-              <p>{trainer.bio}</p>
+              <h2>ABOUT ME</h2>
+              {trainer.bio.map((paragraph, idx) => (
+                <p key={idx}>{paragraph}</p>
+              ))}
             </div>
 
             <div className="profile-section">
-              <h2>Certifications & Expertise</h2>
-              <div className="certifications-list">
+              <h2>CERTIFICATIONS & EXPERTISE</h2>
+              <div className="certifications-grid">
                 {trainer.certifications.map((cert, idx) => (
-                  <div key={idx} className="certification-item">
-                    <span className="cert-icon">✓</span>
-                    <span>{cert}</span>
+                  <div key={idx} className="certification-card">
+                    <div className="cert-icon-circle">
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3">
+                        <polyline points="20 6 9 17 4 12"></polyline>
+                      </svg>
+                    </div>
+                    <div className="cert-content">
+                      <div className="cert-name">{cert.name}</div>
+                      <div className="cert-org">{cert.org}</div>
+                    </div>
                   </div>
+                ))}
+              </div>
+            </div>
+
+            <div className="profile-section">
+              <h2>SPECIALIZATIONS</h2>
+              <div className="specializations-tags">
+                {trainer.specializations.map((spec, idx) => (
+                  <span key={idx} className="specialization-tag">{spec}</span>
                 ))}
               </div>
             </div>
           </div>
 
           <div className="coach-profile-right">
-            <div className="session-rates-panel">
-              <h3>Session Rates</h3>
-              <div className="pricing-item">
-                <span className="price">${trainer.rate}</span>
-                <span className="price-label">per session</span>
+            <div className="coach-sidebar-sticky">
+              <div className="session-rates-panel">
+                <h3>SESSION RATES</h3>
+                <div className="pricing-item">
+                  <div className="pricing-header">SINGLE SESSION</div>
+                  <span className="price">${trainer.rate}</span>
+                  <span className="price-label">/hour</span>
+                </div>
+                <div className="pricing-divider"></div>
+                <div className="pricing-item">
+                  <div className="pricing-header">5 SESSION PACKAGE</div>
+                  <span className="price">$400</span>
+                  <span className="price-label">Save $25</span>
+                </div>
+                <div className="pricing-divider"></div>
+                <div className="pricing-item">
+                  <div className="pricing-header">10 SESSION PACKAGE</div>
+                  <span className="price">$750</span>
+                  <span className="price-label">Save $100</span>
+                </div>
+                <Link to={`/booking/${trainer.id}`} className="coach-profile-book-btn full-width">
+                  BOOK SESSION
+                </Link>
               </div>
-              <div className="pricing-item">
-                <span className="price">$400</span>
-                <span className="price-label">5 sessions</span>
+
+              <div className="quick-stats-panel">
+                <h3>QUICK STATS</h3>
+                <div className="quick-stat-item">
+                  <span className="quick-stat-value">{trainer.stats.clients}</span>
+                  <span className="quick-stat-label">Clients Trained</span>
+                </div>
+                <div className="quick-stat-item">
+                  <span className="quick-stat-value">{trainer.stats.years}</span>
+                  <span className="quick-stat-label">Years Experience</span>
+                </div>
+                <div className="quick-stat-item">
+                  <span className="quick-stat-value">{trainer.stats.rating}</span>
+                  <span className="quick-stat-label">Average Rating</span>
+                </div>
+                <div className="quick-stat-item">
+                  <span className="quick-stat-value">{trainer.stats.successRate}</span>
+                  <span className="quick-stat-label">Client Success Rate</span>
+                </div>
               </div>
-              <div className="pricing-item">
-                <span className="price">$750</span>
-                <span className="price-label">10 sessions</span>
-              </div>
-              <Link to={`/booking/${trainer.id}`} className="coach-profile-book-btn full-width">
-                BOOK SESSION
-              </Link>
             </div>
           </div>
         </div>
