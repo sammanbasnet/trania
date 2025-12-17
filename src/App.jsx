@@ -9,6 +9,7 @@ import HomePage from './pages/HomePage.jsx';
 import TrainerSignupPage from './pages/TrainerSignupPage.jsx';
 import ClientDashboard from './pages/ClientDashboard.jsx';
 import TrainerDashboard from './pages/TrainerDashboard.jsx';
+import SessionsPage from './pages/SessionsPage.jsx';
 import ProtectedRoute from './components/ProtectedRoute.jsx';
 import Logo from './components/Logo.jsx';
 
@@ -52,7 +53,7 @@ function App() {
           </Link>
           <nav>
             <Link to="/">HOME</Link>
-            <Link to="/trainers">SESSIONS</Link>
+            <Link to="/sessions">SESSIONS</Link>
             <Link to="/trainers">TRAINERS</Link>
             <a href="#about">ABOUT</a>
           </nav>
@@ -79,7 +80,7 @@ function App() {
           </Link>
           <nav className="dashboard-nav">
             <Link to="/">HOME</Link>
-            <Link to="/trainers">SESSIONS</Link>
+            <Link to="/sessions">SESSIONS</Link>
             <Link to="/trainers">TRAINERS</Link>
             <a href="#about">ABOUT</a>
           </nav>
@@ -104,6 +105,7 @@ function App() {
           <Route path="/register" element={<RegisterPage />} />
           <Route path="/trainer-signup" element={<TrainerSignupPage />} />
           <Route path="/trainers" element={<TrainersPage />} />
+          <Route path="/sessions" element={<SessionsPage />} />
           <Route path="/trainer/:id" element={<CoachProfilePage />} />
           <Route path="/booking/:trainerId" element={<BookingPage />} />
           <Route 

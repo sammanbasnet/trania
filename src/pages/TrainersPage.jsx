@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Logo from '../components/Logo.jsx';
 
 const MOCK_TRAINERS = [
@@ -9,7 +9,7 @@ const MOCK_TRAINERS = [
     specialty: 'Strength & Conditioning',
     rating: 5,
     reviews: 48,
-    rate: 85,
+    rate: 1500,
     photo: 'https://images.unsplash.com/photo-1594381898411-846e7d193883?w=600&h=600&fit=crop&q=80',
   },
   {
@@ -18,7 +18,7 @@ const MOCK_TRAINERS = [
     specialty: 'CrossFit & HIIT',
     rating: 4,
     reviews: 32,
-    rate: 75,
+    rate: 1400,
     photo: 'https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?w=600&h=600&fit=crop&q=80',
   },
   {
@@ -27,7 +27,7 @@ const MOCK_TRAINERS = [
     specialty: 'Yoga & Mindfulness',
     rating: 5,
     reviews: 67,
-    rate: 65,
+    rate: 1200,
     photo: 'https://images.unsplash.com/photo-1506126613408-eca07ce68773?w=600&h=600&fit=crop&q=80',
   },
   {
@@ -36,7 +36,7 @@ const MOCK_TRAINERS = [
     specialty: 'Nutrition & Weight Loss',
     rating: 4,
     reviews: 29,
-    rate: 90,
+    rate: 1800,
     photo: 'https://images.unsplash.com/photo-1517836357463-d25dfeac3bdf?w=600&h=600&fit=crop&q=80',
   },
   {
@@ -45,7 +45,7 @@ const MOCK_TRAINERS = [
     specialty: 'Pilates & Core Training',
     rating: 5,
     reviews: 54,
-    rate: 70,
+    rate: 1300,
     photo: 'https://images.unsplash.com/photo-1518611012118-696072aa579a?w=600&h=600&fit=crop&q=80',
   },
   {
@@ -54,7 +54,7 @@ const MOCK_TRAINERS = [
     specialty: 'Boxing & Combat Sports',
     rating: 4,
     reviews: 41,
-    rate: 80,
+    rate: 1600,
     photo: 'https://images.unsplash.com/photo-1550345332-09e3ac987658?w=600&h=600&fit=crop&q=80',
   },
   {
@@ -63,7 +63,7 @@ const MOCK_TRAINERS = [
     specialty: 'Swimming & Aqua Fitness',
     rating: 5,
     reviews: 36,
-    rate: 75,
+    rate: 1400,
     photo: 'https://images.unsplash.com/photo-1544367567-0f2fcb009e0b?w=600&h=600&fit=crop&q=80',
   },
   {
@@ -72,19 +72,65 @@ const MOCK_TRAINERS = [
     specialty: 'Senior Fitness & Mobility',
     rating: 4,
     reviews: 22,
-    rate: 65,
+    rate: 1200,
     photo: 'https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?w=600&h=600&fit=crop&q=80',
   },
 ];
 
 function TrainersPage() {
   const [filter, setFilter] = useState('All Specialties');
+  const [trainers, setTrainers] = useState(MOCK_TRAINERS);
+
+  // Load trainer profiles from localStorage and merge with mock data
+  useEffect(() => {
+    const trainerProfiles = JSON.parse(localStorage.getItem('trainerProfiles') || '{}');
+    
+    // Get all trainer profiles
+    const allProfiles = Object.values(trainerProfiles);
+    
+    // Create trainer objects from profiles
+    const trainerProfilesObj = JSON.parse(localStorage.getItem('trainerProfiles') || '{}');
+    const profileTrainers = Object.keys(trainerProfilesObj).map((email, index) => {
+      const profile = trainerProfilesObj[email];
+      return {
+        id: `profile_${index + 100}`,
+        name: profile.name || 'Trainer',
+        specialty: profile.specialty || 'Fitness Training',
+        rating: parseFloat(profile.stats?.rating) || 4.5,
+        reviews: Math.floor(Math.random() * 100) + 10,
+        rate: parseInt(profile.rate) || 1500,
+        photo: profile.photo || 'https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?w=600&h=600&fit=crop&q=80',
+        profileEmail: email, // Store email for profile lookup
+      };
+    });
+
+    // Merge with mock trainers (profile trainers take priority if same name)
+    const mergedTrainers = [...MOCK_TRAINERS];
+    profileTrainers.forEach(profileTrainer => {
+      const existingIndex = mergedTrainers.findIndex(t => 
+        t.name.toLowerCase() === profileTrainer.name.toLowerCase()
+      );
+      if (existingIndex >= 0) {
+        // Update existing trainer with profile data
+        mergedTrainers[existingIndex] = { 
+          ...mergedTrainers[existingIndex], 
+          ...profileTrainer,
+          id: mergedTrainers[existingIndex].id // Keep original ID
+        };
+      } else {
+        // Add new trainer from profile
+        mergedTrainers.push(profileTrainer);
+      }
+    });
+
+    setTrainers(mergedTrainers);
+  }, []);
 
   const filters = ['All Specialties', 'Weight Training', 'Cardio', 'Yoga', 'Nutrition'];
 
   const filteredTrainers = filter === 'All Specialties' 
-    ? MOCK_TRAINERS 
-    : MOCK_TRAINERS.filter(t => {
+    ? trainers 
+    : trainers.filter(t => {
         const specialtyLower = t.specialty.toLowerCase();
         if (filter === 'Weight Training') {
           return specialtyLower.includes('strength') || specialtyLower.includes('weight');
@@ -152,8 +198,11 @@ function TrainersPage() {
                     <span className="stars">{renderStars(trainer.rating)}</span>
                     <span className="reviews">({trainer.reviews} reviews)</span>
                   </div>
-                  <p className="trainer-rate">${trainer.rate}/hr</p>
-                  <Link to={`/trainer/${trainer.id}`} className="trainer-view-btn">
+                  <p className="trainer-rate">₹{trainer.rate.toLocaleString('en-IN')}/hr</p>
+                  <Link 
+                    to={`/trainer/${trainer.id}${trainer.profileEmail ? `?email=${encodeURIComponent(trainer.profileEmail)}` : ''}`} 
+                    className="trainer-view-btn"
+                  >
                     View Profile
                   </Link>
                 </div>

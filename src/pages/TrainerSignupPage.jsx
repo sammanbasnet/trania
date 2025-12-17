@@ -50,7 +50,7 @@ function TrainerSignupPage() {
     setLoading(true);
 
     try {
-      await authAPI.trainerSignup({
+      const response = await authAPI.trainerSignup({
         fullName,
         email,
         phone,
@@ -61,6 +61,35 @@ function TrainerSignupPage() {
         gymLocation,
         password,
       });
+
+      // Save initial profile data
+      const initialProfile = {
+        name: fullName,
+        specialty: specialties && specialties.length > 0 ? specialties[0] : 'Fitness Training',
+        subtitle: '',
+        photo: 'https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?w=600&h=600&fit=crop&q=80',
+        bio: ['', ''],
+        certifications: certifications ? certifications.split(',').map(c => ({
+          name: c.trim(),
+          org: ''
+        })) : [],
+        specializations: specialties || [],
+        rate: parseInt(hourlyRate) || 1500,
+        experience: yearsExperience,
+        gymLocation: gymLocation || '',
+        stats: {
+          clients: '0',
+          years: yearsExperience,
+          rating: '0',
+          successRate: '0%',
+        },
+      };
+
+      // Save profile to localStorage
+      localStorage.setItem(`trainerProfile_${email}`, JSON.stringify(initialProfile));
+      const trainerProfiles = JSON.parse(localStorage.getItem('trainerProfiles') || '{}');
+      trainerProfiles[email] = initialProfile;
+      localStorage.setItem('trainerProfiles', JSON.stringify(trainerProfiles));
 
       // Redirect to login page after successful signup
       navigate('/login', { 
@@ -166,16 +195,16 @@ function TrainerSignupPage() {
             </div>
 
             <div className="trainer-input-group trainer-rate-group">
-              <span className="trainer-input-icon">$</span>
+              <span className="trainer-input-icon">₹</span>
               <input
                 type="number"
                 value={hourlyRate}
                 onChange={(e) => setHourlyRate(e.target.value)}
                 className="trainer-input"
-                placeholder="50"
+                placeholder="1000"
                 required
               />
-              <span className="trainer-rate-label">Hourly Rate ($)</span>
+              <span className="trainer-rate-label">Hourly Rate (₹)</span>
             </div>
 
             <div className="trainer-input-group">

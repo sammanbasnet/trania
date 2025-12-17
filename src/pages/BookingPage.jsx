@@ -4,32 +4,102 @@ import { useState } from 'react';
 const TRAINERS_BY_ID = {
   1: {
     id: '1',
-    name: 'Alex Johnson',
-    specialty: 'Strength & Conditioning',
+    name: 'John Smith',
+    specialty: 'Strength Training Specialist',
     photo: 'https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?w=800&h=800&fit=crop&q=80',
   },
   2: {
     id: '2',
-    name: 'Maria Gomez',
-    specialty: 'Weight Loss & Nutrition',
+    name: 'Sarah Johnson',
+    specialty: 'Yoga & Mindfulness',
     photo: 'https://images.unsplash.com/photo-1544367567-0f2fcb009e0b?w=800&h=800&fit=crop&q=80',
   },
   3: {
     id: '3',
-    name: 'James Lee',
-    specialty: 'Functional Fitness & Mobility',
+    name: 'Mike Chen',
+    specialty: 'CrossFit Coach',
     photo: 'https://images.unsplash.com/photo-1517836357463-d25dfeac3bdf?w=800&h=800&fit=crop&q=80',
+  },
+  4: {
+    id: '4',
+    name: 'Emma Rodriguez',
+    specialty: 'HIIT & Cardio',
+    photo: 'https://images.unsplash.com/photo-1506126613408-eca07ce68773?w=800&h=800&fit=crop&q=80',
   },
 };
 
 function BookingPage() {
   const { trainerId } = useParams();
   const navigate = useNavigate();
-  const trainer = TRAINERS_BY_ID[trainerId];
   const [date, setDate] = useState('');
   const [time, setTime] = useState('');
   const [notes, setNotes] = useState('');
   const [confirmation, setConfirmation] = useState('');
+  
+  // Get trainer data from profiles first, then fall back to mock data
+  const getTrainerData = () => {
+    const trainerProfiles = JSON.parse(localStorage.getItem('trainerProfiles') || '{}');
+    const urlParams = new URLSearchParams(window.location.search);
+    const emailFromUrl = urlParams.get('email');
+    
+    // If email is in URL, use that profile
+    if (emailFromUrl && trainerProfiles[emailFromUrl]) {
+      const profile = trainerProfiles[emailFromUrl];
+      return {
+        id: trainerId,
+        name: profile.name,
+        specialty: profile.specialty,
+        photo: profile.photo,
+        email: emailFromUrl,
+      };
+    }
+    
+    // Try to find by trainerId in profiles (if trainerId matches an email)
+    if (trainerProfiles[trainerId]) {
+      const profile = trainerProfiles[trainerId];
+      return {
+        id: trainerId,
+        name: profile.name,
+        specialty: profile.specialty,
+        photo: profile.photo,
+        email: trainerId,
+      };
+    }
+    
+    // Try to find any trainer profile (for demo - assumes single trainer)
+    const profileEntries = Object.entries(trainerProfiles);
+    if (profileEntries.length > 0) {
+      const [email, profile] = profileEntries[0];
+      return {
+        id: trainerId,
+        name: profile.name,
+        specialty: profile.specialty,
+        photo: profile.photo,
+        email: email,
+      };
+    }
+    
+    // Fall back to mock data
+    return TRAINERS_BY_ID[trainerId] || TRAINERS_BY_ID[2];
+  };
+  
+  const trainer = getTrainerData();
+
+  // Get trainer email from the trainer data
+  const getTrainerEmail = () => {
+    // If trainer has email property (from profile), use it
+    if (trainer.email) {
+      return trainer.email;
+    }
+    
+    // Otherwise try to find by name
+    const trainerProfiles = JSON.parse(localStorage.getItem('trainerProfiles') || '{}');
+    const profileEntry = Object.entries(trainerProfiles).find(([email, profile]) => 
+      profile.name && profile.name.toLowerCase() === trainer.name.toLowerCase()
+    );
+    
+    return profileEntry ? profileEntry[0] : null;
+  };
 
   const handleSubmit = (e) => {
     e.preventDefault();
@@ -39,20 +109,48 @@ function BookingPage() {
       return;
     }
 
+    const userData = JSON.parse(localStorage.getItem('tranlyUser') || '{}');
+    const clientEmail = userData.email;
+    const clientName = userData.fullName || 'Client';
+
     const bookings = JSON.parse(localStorage.getItem('tranlyBookings') || '[]');
-    bookings.push({
+    const trainerEmail = getTrainerEmail();
+    const newBooking = {
       id: Date.now().toString(),
-      trainerId,
+      trainerId: trainerId,
+      trainerName: trainer.name, // Use actual trainer name from profile
+      trainerEmail: trainerEmail || trainer.email || null, // Store trainer email for better matching
+      trainerPhoto: trainer.photo,
+      specialty: trainer.specialty,
+      clientEmail,
+      clientName,
       date,
       time,
       notes,
-    });
+      status: 'pending', // pending, accepted, rejected
+      createdAt: new Date().toISOString(),
+    };
+    bookings.push(newBooking);
     localStorage.setItem('tranlyBookings', JSON.stringify(bookings));
+    
+    // Verify it was saved
+    const verifyBookings = JSON.parse(localStorage.getItem('tranlyBookings') || '[]');
+    
+    // Debug logging
+    console.log('📝 Booking Created:', {
+      booking: newBooking,
+      trainerEmailFound: trainerEmail || 'NOT FOUND',
+      bookingsBeforeSave: bookings.length,
+      bookingsAfterSave: verifyBookings.length,
+      savedBooking: verifyBookings[verifyBookings.length - 1],
+      localStorageKey: 'tranlyBookings',
+      allLocalStorageKeys: Object.keys(localStorage).filter(k => k.includes('booking') || k.includes('Booking'))
+    });
 
-    setConfirmation('Session booked successfully!');
+    setConfirmation('Booking request sent! The trainer will review and accept your booking.');
     setTimeout(() => {
-      navigate('/trainers');
-    }, 1200);
+      navigate('/sessions');
+    }, 2000);
   };
 
   if (!trainer) {
@@ -79,10 +177,9 @@ function BookingPage() {
             <label className="booking-label">Date</label>
             <div className="booking-input-wrapper">
               <input
-                type="text"
+                type="date"
                 value={date}
                 onChange={(e) => setDate(e.target.value)}
-                placeholder="mm/dd/yyyy"
                 className="booking-input"
               />
               <svg className="booking-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">

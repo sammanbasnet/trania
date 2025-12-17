@@ -1,10 +1,28 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 
 function ClientDashboard() {
   const navigate = useNavigate();
   const userData = JSON.parse(localStorage.getItem('tranlyUser') || '{}');
+  const userEmail = userData.email;
   const userName = userData.fullName || 'Sarah';
+
+  // Load existing profile data
+  const existingProfile = JSON.parse(localStorage.getItem(`clientProfile_${userEmail}`) || '{}');
+
+  const [activeSidebar, setActiveSidebar] = useState('dashboard');
+  const [profileSaved, setProfileSaved] = useState(false);
+
+  const [profileData, setProfileData] = useState({
+    name: existingProfile.name || userData.fullName || '',
+    email: existingProfile.email || userData.email || '',
+    phone: existingProfile.phone || userData.phone || '',
+    photo: existingProfile.photo || 'https://images.unsplash.com/photo-1594381898411-846e7d193883?w=600&h=600&fit=crop&q=80',
+    bio: existingProfile.bio || '',
+    gender: existingProfile.gender || userData.gender || '',
+    dateOfBirth: existingProfile.dateOfBirth || '',
+    address: existingProfile.address || '',
+  });
 
   const upcomingSessions = [
     {
@@ -25,11 +43,29 @@ function ClientDashboard() {
     }
   ];
 
-  const mySessions = [
-    { type: 'Strength Training', date: 'Dec 15, 2024 - 5:00 PM', status: 'Confirmed' },
-    { type: 'Cardio Blast', date: 'Dec 12, 2024 - 7:00 AM', status: 'Completed' },
-    { type: 'Personal Training', date: 'Dec 10, 2024 - 6:30 PM', status: 'Cancelled' }
-  ];
+  const [mySessions, setMySessions] = useState([]);
+
+  // Load accepted bookings for this client
+  useEffect(() => {
+    const loadMySessions = () => {
+      const bookings = JSON.parse(localStorage.getItem('tranlyBookings') || '[]');
+      const acceptedBookings = bookings
+        .filter(booking => booking.clientEmail === userEmail && booking.status === 'accepted')
+        .map(booking => ({
+          id: booking.id,
+          type: booking.specialty || 'Training Session',
+          date: `${new Date(booking.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })} - ${booking.time}`,
+          status: 'Confirmed',
+          trainerName: booking.trainerName,
+          trainerPhoto: booking.trainerPhoto,
+        }));
+      setMySessions(acceptedBookings);
+    };
+    
+    loadMySessions();
+    const interval = setInterval(loadMySessions, 1000);
+    return () => clearInterval(interval);
+  }, [userEmail]);
 
   const favoriteTrainers = [
     { name: 'Alex Rodriguez', specialty: 'Strength & Conditioning', rating: 4.9, photo: 'https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?w=100&h=100&fit=crop&q=80' },
@@ -38,17 +74,59 @@ function ClientDashboard() {
   ];
 
   const paymentHistory = [
-    { description: 'Monthly Subscription', date: 'Dec 1, 2024', amount: '$89.99' },
-    { description: 'Personal Training Session', date: 'Nov 28, 2024', amount: '$75.00' },
-    { description: 'Monthly Subscription', date: 'Nov 1, 2024', amount: '$89.99' }
+    { description: 'Monthly Subscription', date: 'Dec 1, 2024', amount: '₹1,800' },
+    { description: 'Personal Training Session', date: 'Nov 28, 2024', amount: '₹1,500' },
+    { description: 'Monthly Subscription', date: 'Nov 1, 2024', amount: '₹1,800' }
   ];
-
-  const [activeSidebar, setActiveSidebar] = useState('dashboard');
 
   const handleLogout = () => {
     localStorage.removeItem('tranlyUser');
     localStorage.removeItem('tranlyTrainer');
     navigate('/login');
+  };
+
+  const handleProfileChange = (field, value) => {
+    setProfileData(prev => ({
+      ...prev,
+      [field]: value
+    }));
+  };
+
+  const handlePhotoUpload = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setProfileData(prev => ({
+          ...prev,
+          photo: reader.result
+        }));
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const handleSaveProfile = () => {
+    // Save profile to localStorage keyed by email
+    localStorage.setItem(`clientProfile_${userEmail}`, JSON.stringify(profileData));
+    
+    // Also update the client profiles object for easy lookup
+    const clientProfiles = JSON.parse(localStorage.getItem('clientProfiles') || '{}');
+    clientProfiles[userEmail] = profileData;
+    localStorage.setItem('clientProfiles', JSON.stringify(clientProfiles));
+    
+    // Update userData in localStorage
+    const updatedUserData = {
+      ...userData,
+      fullName: profileData.name,
+      email: profileData.email,
+      phone: profileData.phone,
+      gender: profileData.gender,
+    };
+    localStorage.setItem('tranlyUser', JSON.stringify(updatedUserData));
+    
+    setProfileSaved(true);
+    setTimeout(() => setProfileSaved(false), 3000);
   };
 
   return (
@@ -62,9 +140,9 @@ function ClientDashboard() {
             <span className="sidebar-icon">📊</span>
             <span>Dashboard</span>
           </Link>
-          <Link to="/client-sessions" className={`sidebar-item ${activeSidebar === 'sessions' ? 'active' : ''}`} onClick={() => setActiveSidebar('sessions')}>
+          <Link to="/sessions" className={`sidebar-item ${activeSidebar === 'sessions' ? 'active' : ''}`} onClick={() => setActiveSidebar('sessions')}>
             <span className="sidebar-icon">📅</span>
-            <span>sessions</span>
+            <span>Sessions</span>
           </Link>
           <Link to="/trainers" className={`sidebar-item ${activeSidebar === 'trainers' ? 'active' : ''}`} onClick={() => setActiveSidebar('trainers')}>
             <span className="sidebar-icon">👤</span>
@@ -78,10 +156,10 @@ function ClientDashboard() {
             <span className="sidebar-icon">💳</span>
             <span>Payments</span>
           </Link>
-          <Link to="/client-settings" className={`sidebar-item ${activeSidebar === 'settings' ? 'active' : ''}`} onClick={() => setActiveSidebar('settings')}>
+          <button className={`sidebar-item ${activeSidebar === 'settings' ? 'active' : ''}`} onClick={() => setActiveSidebar('settings')}>
             <span className="sidebar-icon">⚙️</span>
-            <span>Settings</span>
-          </Link>
+            <span>Profile Settings</span>
+          </button>
           <button className="sidebar-item logout" onClick={handleLogout}>
             <span className="sidebar-icon">→</span>
             <span>Logout</span>
@@ -91,12 +169,131 @@ function ClientDashboard() {
 
       <div className="dashboard-main">
         <div className="dashboard-content">
-          <div className="dashboard-welcome">
-            <h1>Welcome back, {userName}</h1>
-            <p>Ready for your next workout session?</p>
-          </div>
+          {activeSidebar === 'settings' ? (
+            <div className="profile-settings-section">
+              <h1>Edit Your Profile</h1>
+              <p>Update your profile information</p>
 
-          <div className="dashboard-grid">
+              {profileSaved && (
+                <div className="profile-save-success">
+                  Profile saved successfully!
+                </div>
+              )}
+
+              <div className="profile-edit-form">
+                <div className="profile-form-group">
+                  <label>Profile Photo</label>
+                  <div className="photo-upload-section">
+                    <img src={profileData.photo} alt="Profile" className="profile-preview-photo" />
+                    <input
+                      type="file"
+                      accept="image/*"
+                      onChange={handlePhotoUpload}
+                      className="photo-upload-input"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => document.querySelector('.photo-upload-input').click()}
+                      className="btn-upload-photo"
+                    >
+                      Change Photo
+                    </button>
+                  </div>
+                </div>
+
+                <div className="profile-form-group">
+                  <label>Full Name</label>
+                  <input
+                    type="text"
+                    value={profileData.name}
+                    onChange={(e) => handleProfileChange('name', e.target.value)}
+                    className="profile-input"
+                    placeholder="Your full name"
+                  />
+                </div>
+
+                <div className="profile-form-group">
+                  <label>Email Address</label>
+                  <input
+                    type="email"
+                    value={profileData.email}
+                    onChange={(e) => handleProfileChange('email', e.target.value)}
+                    className="profile-input"
+                    placeholder="your.email@example.com"
+                  />
+                </div>
+
+                <div className="profile-form-group">
+                  <label>Phone Number</label>
+                  <input
+                    type="tel"
+                    value={profileData.phone}
+                    onChange={(e) => handleProfileChange('phone', e.target.value)}
+                    className="profile-input"
+                    placeholder="+91 1234567890"
+                  />
+                </div>
+
+                <div className="profile-form-group">
+                  <label>Gender</label>
+                  <select
+                    value={profileData.gender}
+                    onChange={(e) => handleProfileChange('gender', e.target.value)}
+                    className="profile-input"
+                  >
+                    <option value="">Select Gender</option>
+                    <option value="male">Male</option>
+                    <option value="female">Female</option>
+                    <option value="other">Other</option>
+                    <option value="prefer-not-to-say">Prefer not to say</option>
+                  </select>
+                </div>
+
+                <div className="profile-form-group">
+                  <label>Date of Birth</label>
+                  <input
+                    type="date"
+                    value={profileData.dateOfBirth}
+                    onChange={(e) => handleProfileChange('dateOfBirth', e.target.value)}
+                    className="profile-input"
+                  />
+                </div>
+
+                <div className="profile-form-group">
+                  <label>Address</label>
+                  <textarea
+                    value={profileData.address}
+                    onChange={(e) => handleProfileChange('address', e.target.value)}
+                    className="profile-textarea"
+                    rows="3"
+                    placeholder="Your address..."
+                  />
+                </div>
+
+                <div className="profile-form-group">
+                  <label>About Me</label>
+                  <textarea
+                    value={profileData.bio}
+                    onChange={(e) => handleProfileChange('bio', e.target.value)}
+                    className="profile-textarea"
+                    rows="5"
+                    placeholder="Tell us about yourself, your fitness goals, and what you're looking for in a trainer..."
+                  />
+                </div>
+
+                <button onClick={handleSaveProfile} className="btn-save-profile">
+                  Save Profile
+                </button>
+              </div>
+            </div>
+          ) : (
+            <>
+              <div className="dashboard-welcome">
+                <h1>Welcome back, {profileData.name || userName}</h1>
+                <p>Ready for your next workout session?</p>
+              </div>
+
+              <div className="dashboard-grid">
             <div className="dashboard-section upcoming-sessions">
               <h2>Upcoming Sessions</h2>
               <div className="sessions-list">
@@ -152,19 +349,25 @@ function ClientDashboard() {
 
             <div className="dashboard-section my-sessions">
               <div className="section-header">
-                <h2>My sessions</h2>
-                <button className="btn-primary">Book More Sessions</button>
+                <h2>My Sessions</h2>
+                <Link to="/sessions" className="btn-primary" style={{ textDecoration: 'none', color: 'inherit' }}>
+                  Book More Sessions
+                </Link>
               </div>
               <div className="sessions-list">
-                {mySessions.map((session, i) => (
-                  <div key={i} className="session-row">
-                    <div>
-                      <h3>{session.type}</h3>
-                      <p>{session.date}</p>
+                {mySessions.length === 0 ? (
+                  <p style={{ color: 'rgba(0, 0, 0, 0.5)', padding: '20px' }}>No sessions booked yet. Book a session to get started!</p>
+                ) : (
+                  mySessions.map((session) => (
+                    <div key={session.id} className="session-row">
+                      <div>
+                        <h3>{session.type} {session.trainerName && `with ${session.trainerName}`}</h3>
+                        <p>{session.date}</p>
+                      </div>
+                      <span className={`status-badge ${session.status.toLowerCase()}`}>{session.status}</span>
                     </div>
-                    <span className={`status-badge ${session.status.toLowerCase()}`}>{session.status}</span>
-                  </div>
-                ))}
+                  ))
+                )}
               </div>
             </div>
 
@@ -202,28 +405,9 @@ function ClientDashboard() {
               </div>
             </div>
 
-            <div className="dashboard-section profile-settings">
-              <h2>Profile Settings</h2>
-              <div className="settings-form">
-                <div className="form-group">
-                  <label>Full Name</label>
-                  <input type="text" defaultValue={userData.fullName || "Sarah Wilson"} />
-                </div>
-                <div className="form-group">
-                  <label>Email Address</label>
-                  <input type="email" defaultValue={userData.email || "sarah.wilson@email.com"} />
-                </div>
-                <div className="form-group">
-                  <label>Phone Number</label>
-                  <input type="tel" defaultValue={userData.phone || "+1 (555) 123-4567"} />
-                </div>
-                <div className="form-actions">
-                  <button className="btn-primary">Update Profile</button>
-                  <button className="btn-secondary">Change Password</button>
-                </div>
               </div>
-            </div>
-          </div>
+            </>
+          )}
         </div>
       </div>
     </div>
