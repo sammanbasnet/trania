@@ -112,7 +112,7 @@ function SessionsPage() {
         // Use profile name if available, otherwise only use booking name if it's NOT a mock name
         const finalTrainerName = trainerProfile?.name || (!isMockName ? booking.trainerName : null) || 'Trainer';
         
-        // If we have a trainer profile, ALWAYS use it (ignore booking data)
+        // If we have a trainer profile, use it but prioritize booking price
         if (trainerProfile) {
           return {
             id: booking.id,
@@ -124,7 +124,8 @@ function SessionsPage() {
             time: booking.time || '10:00 - 11:00 AM',
             location: trainerProfile.gymLocation || 'Studio',
             isOnline: false,
-            price: trainerProfile.rate || 1500,
+            price: booking.price || trainerProfile.rate || 1500, // Prioritize booking price
+            sessionType: booking.sessionType || 'single', // Include session type
             date: booking.date || new Date().toISOString().split('T')[0],
           };
         }
@@ -144,7 +145,8 @@ function SessionsPage() {
           time: booking.time || '10:00 - 11:00 AM',
           location: 'Studio',
           isOnline: false,
-          price: booking.price || 1500,
+          price: booking.price || 1500, // Use booking price
+          sessionType: booking.sessionType || 'single', // Include session type
           date: booking.date || new Date().toISOString().split('T')[0],
         };
       }).filter(session => session !== null && session.trainerName && session.trainerName !== 'Trainer'); // Filter out invalid sessions
@@ -318,7 +320,16 @@ function SessionsPage() {
                   </div>
                 </div>
                 <div className="session-card-footer">
-                  <span className="session-price">₹{session.price.toLocaleString('en-IN')}</span>
+                  <div className="session-price-info">
+                    <span className="session-price">₹{session.price.toLocaleString('en-IN')}</span>
+                    {session.sessionType && (
+                      <span className="session-type-badge">
+                        {session.sessionType === 'single' ? 'Single Session' : 
+                         session.sessionType === 'package5' ? '5 Session Package' : 
+                         session.sessionType === 'package10' ? '10 Session Package' : 'Session'}
+                      </span>
+                    )}
+                  </div>
                   <button onClick={() => handleBookNow(session)} className="session-book-btn">
                     Book Now
                   </button>

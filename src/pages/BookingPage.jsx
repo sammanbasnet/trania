@@ -32,9 +32,33 @@ function BookingPage() {
   const { trainerId } = useParams();
   const navigate = useNavigate();
   const [date, setDate] = useState('');
-  const [time, setTime] = useState('');
+  const [selectedTimeSlot, setSelectedTimeSlot] = useState('');
+  const [sessionType, setSessionType] = useState('single'); // single, package5, package10
   const [notes, setNotes] = useState('');
   const [confirmation, setConfirmation] = useState('');
+
+  // Session rates
+  const sessionRates = {
+    single: { price: 1000, label: 'Single Session', sessions: 1 },
+    package5: { price: 7000, label: '5 Session Package', sessions: 5, savings: 500 },
+    package10: { price: 13000, label: '10 Session Package', sessions: 10, savings: 2000 },
+  };
+
+  // Available time slots
+  const timeSlots = [
+    '9:00 AM - 10:00 AM',
+    '10:00 AM - 11:00 AM',
+    '11:00 AM - 12:00 PM',
+    '12:00 PM - 1:00 PM',
+    '1:00 PM - 2:00 PM',
+    '2:00 PM - 3:00 PM',
+    '3:00 PM - 4:00 PM',
+    '4:00 PM - 5:00 PM',
+    '5:00 PM - 6:00 PM',
+    '6:00 PM - 7:00 PM',
+    '7:00 PM - 8:00 PM',
+    '8:00 PM - 9:00 PM',
+  ];
   
   // Get trainer data from profiles first, then fall back to mock data
   const getTrainerData = () => {
@@ -104,8 +128,13 @@ function BookingPage() {
   const handleSubmit = (e) => {
     e.preventDefault();
 
-    if (!date || !time) {
-      setConfirmation('Please select date and time.');
+    if (!date || !selectedTimeSlot) {
+      setConfirmation('Please select date and time slot.');
+      return;
+    }
+
+    if (!sessionType) {
+      setConfirmation('Please select a session package.');
       return;
     }
 
@@ -115,37 +144,27 @@ function BookingPage() {
 
     const bookings = JSON.parse(localStorage.getItem('tranlyBookings') || '[]');
     const trainerEmail = getTrainerEmail();
+    const selectedRate = sessionRates[sessionType];
+    
     const newBooking = {
       id: Date.now().toString(),
       trainerId: trainerId,
-      trainerName: trainer.name, // Use actual trainer name from profile
-      trainerEmail: trainerEmail || trainer.email || null, // Store trainer email for better matching
+      trainerName: trainer.name,
+      trainerEmail: trainerEmail || trainer.email || null,
       trainerPhoto: trainer.photo,
       specialty: trainer.specialty,
       clientEmail,
       clientName,
       date,
-      time,
+      time: selectedTimeSlot,
+      sessionType: sessionType, // Store session type
+      price: selectedRate.price, // Store the actual price
       notes,
-      status: 'pending', // pending, accepted, rejected
+      status: 'pending',
       createdAt: new Date().toISOString(),
     };
     bookings.push(newBooking);
     localStorage.setItem('tranlyBookings', JSON.stringify(bookings));
-    
-    // Verify it was saved
-    const verifyBookings = JSON.parse(localStorage.getItem('tranlyBookings') || '[]');
-    
-    // Debug logging
-    console.log('📝 Booking Created:', {
-      booking: newBooking,
-      trainerEmailFound: trainerEmail || 'NOT FOUND',
-      bookingsBeforeSave: bookings.length,
-      bookingsAfterSave: verifyBookings.length,
-      savedBooking: verifyBookings[verifyBookings.length - 1],
-      localStorageKey: 'tranlyBookings',
-      allLocalStorageKeys: Object.keys(localStorage).filter(k => k.includes('booking') || k.includes('Booking'))
-    });
 
     setConfirmation('Booking request sent! The trainer will review and accept your booking.');
     setTimeout(() => {
@@ -169,66 +188,116 @@ function BookingPage() {
   return (
     <div className="booking-page">
       <div className="booking-container">
-        <h1 className="booking-title">Book a session with {trainer.name}</h1>
-        <p className="booking-specialty">{trainer.specialty}</p>
+        <div className="booking-header">
+          <h1 className="booking-title">Book a session with {trainer.name}</h1>
+          <p className="booking-specialty">{trainer.specialty}</p>
+        </div>
 
-        <form onSubmit={handleSubmit} className="booking-form">
-          <div className="booking-input-group">
-            <label className="booking-label">Date</label>
-            <div className="booking-input-wrapper">
-              <input
-                type="date"
-                value={date}
-                onChange={(e) => setDate(e.target.value)}
-                className="booking-input"
-              />
-              <svg className="booking-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
-                <line x1="16" y1="2" x2="16" y2="6"></line>
-                <line x1="8" y1="2" x2="8" y2="6"></line>
-                <line x1="3" y1="10" x2="21" y2="10"></line>
-              </svg>
+        <div className="booking-content-wrapper">
+          <form onSubmit={handleSubmit} className="booking-form">
+            {/* Session Rates Selection */}
+            <div className="booking-section">
+              <label className="booking-section-label">Session Rates</label>
+              <div className="session-rates-grid">
+                <div 
+                  className={`session-rate-card ${sessionType === 'single' ? 'selected' : ''}`}
+                  onClick={() => setSessionType('single')}
+                >
+                  <div className="rate-header">
+                    <h3>SINGLE SESSION</h3>
+                  </div>
+                  <div className="rate-price">₹{sessionRates.single.price.toLocaleString('en-IN')} /hour</div>
+                </div>
+                
+                <div 
+                  className={`session-rate-card ${sessionType === 'package5' ? 'selected' : ''}`}
+                  onClick={() => setSessionType('package5')}
+                >
+                  <div className="rate-header">
+                    <h3>5 SESSION PACKAGE</h3>
+                  </div>
+                  <div className="rate-price">₹{sessionRates.package5.price.toLocaleString('en-IN')}</div>
+                  <div className="rate-savings">Save ₹{sessionRates.package5.savings.toLocaleString('en-IN')}</div>
+                </div>
+                
+                <div 
+                  className={`session-rate-card ${sessionType === 'package10' ? 'selected' : ''}`}
+                  onClick={() => setSessionType('package10')}
+                >
+                  <div className="rate-header">
+                    <h3>10 SESSION PACKAGE</h3>
+                  </div>
+                  <div className="rate-price">₹{sessionRates.package10.price.toLocaleString('en-IN')}</div>
+                  <div className="rate-savings">Save ₹{sessionRates.package10.savings.toLocaleString('en-IN')}</div>
+                </div>
+              </div>
             </div>
-          </div>
 
-          <div className="booking-input-group">
-            <label className="booking-label">Time</label>
-            <div className="booking-input-wrapper">
-              <input
-                type="text"
-                value={time}
-                onChange={(e) => setTime(e.target.value)}
-                placeholder="--:--"
-                className="booking-input"
-              />
-              <svg className="booking-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                <circle cx="12" cy="12" r="10"></circle>
-                <polyline points="12 6 12 12 16 14"></polyline>
-              </svg>
+            {/* Date Selection */}
+            <div className="booking-input-group">
+              <label className="booking-label">DATE</label>
+              <div className="booking-input-wrapper">
+                <input
+                  type="date"
+                  value={date}
+                  onChange={(e) => setDate(e.target.value)}
+                  className="booking-input"
+                  min={new Date().toISOString().split('T')[0]}
+                />
+                <svg className="booking-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+                  <line x1="16" y1="2" x2="16" y2="6"></line>
+                  <line x1="8" y1="2" x2="8" y2="6"></line>
+                  <line x1="3" y1="10" x2="21" y2="10"></line>
+                </svg>
+              </div>
             </div>
-          </div>
 
-          <div className="booking-input-group booking-notes-group">
-            <label className="booking-label">Notes (optional)</label>
-            <textarea
-              value={notes}
-              onChange={(e) => setNotes(e.target.value)}
-              placeholder="Goals, preferences, injuries..."
-              className="booking-textarea"
-            />
-          </div>
+            {/* Time Slot Selection */}
+            <div className="booking-input-group">
+              <label className="booking-label">TIME</label>
+              <div className="time-slots-grid">
+                {timeSlots.map((slot) => (
+                  <button
+                    key={slot}
+                    type="button"
+                    className={`time-slot-btn ${selectedTimeSlot === slot ? 'selected' : ''}`}
+                    onClick={() => setSelectedTimeSlot(slot)}
+                  >
+                    {slot}
+                  </button>
+                ))}
+              </div>
+            </div>
 
-          {confirmation && <div className="booking-confirmation">{confirmation}</div>}
+            {/* Notes */}
+            <div className="booking-input-group booking-notes-group">
+              <label className="booking-label">NOTES (OPTIONAL)</label>
+              <textarea
+                value={notes}
+                onChange={(e) => setNotes(e.target.value)}
+                placeholder="Goals, preferences, injuries..."
+                className="booking-textarea"
+                rows="4"
+              />
+            </div>
 
-          <div className="booking-actions">
-            <Link to="/trainers" className="booking-btn-cancel">
-              Cancel
-            </Link>
-            <button type="submit" className="booking-btn-confirm">
-              Confirm Booking
-            </button>
-          </div>
-        </form>
+            {confirmation && (
+              <div className={`booking-confirmation ${confirmation.includes('Please') ? 'error' : 'success'}`}>
+                {confirmation}
+              </div>
+            )}
+
+            <div className="booking-actions">
+              <Link to="/trainers" className="booking-btn-cancel">
+                Cancel
+              </Link>
+              <button type="submit" className="booking-btn-confirm">
+                Confirm Booking
+              </button>
+            </div>
+          </form>
+        </div>
       </div>
     </div>
   );
